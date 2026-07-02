@@ -1,5 +1,5 @@
-import { Client, Users } from 'node-appwrite';
-
+import { Client, Storage } from 'node-appwrite';
+import { classifyImage } from './scan.js'
 // This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
   // You can use the Appwrite SDK to interact with other services
@@ -8,28 +8,25 @@ export default async ({ req, res, log, error }) => {
     .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
     .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
     .setKey(req.headers['x-appwrite-key'] ?? '');
-  const users = new Users(client);
+  const storage = new Storage(client);
+  const fileBuffer = await storage.getFileDownload(bucketId, fileId);
+  const document = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  const { bucketId, fileId, name } = document;
+  if (!bucketId || !fileId) {
+      log('Document missing file references. Skipping processing.');
+      return res.json({ success: true, message: 'No photo files to process.' });
+    }
 
-  try {
-    const response = await users.list();
-    // Log messages and errors to the Appwrite Console
-    // These logs won't be seen by your end users
-    log(`Total users: ${response.total}`);
-  } catch(err) {
-    error("Could not list users: " + err.message);
-  }
+    log(`Processing new photo document: ${document.$id} for file: ${name}`);
 
-  // The req object contains the request data
-  if (req.path === "/ping") {
-    // Use res object to respond with text(), json(), or binary()
-    // Don't forget to return a response!
-    return res.text("Pong");
-  }
+    // 4. Download the raw photo binary buffer from Storage
+    const imageBuffer = await storage.getFileDownload(bucketId, fileId);
 
-  return res.json({
-    motto: "Build like a team of hundreds_",
-    learn: "https://appwrite.io/docs",
-    connect: "https://appwrite.io/discord",
-    getInspired: "https://builtwith.appwrite.io",
-  });
+    let res = await classifyImage(imageBuffer);
+    const topResult = res[0];
+    if (topResult.className === 'Porn' || topResult.className === 'Hentai') {
+      console.log("❌ Flagged: This image is NSFW.");
+    } else {
+      console.log("✅ Cleared: This image is safe.");
+    }
 };

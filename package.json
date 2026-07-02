@@ -8,7 +8,9 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "node-appwrite": "^20.2.1"
+    "node-appwrite": "^20.2.1",
+    "nsfwjs": "^2.4.2",
+    "@tensorflow/tfjs-node": "^4.0.0"
   },
   "devDependencies": {
     "prettier": "^3.2.5"
