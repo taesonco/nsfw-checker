@@ -70,8 +70,9 @@ export default async ({ req, res, log, error }) => {
     
   const storage = new Storage(client);
 
-  const document = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  const { bucketId, fileId, name } = document || {};
+  const bucketId = document.bucketId;
+  const fileId = document.$id; 
+  const name = document.name;
 
   if (!bucketId || !fileId) {
     log('Document missing file references. Skipping processing.');
