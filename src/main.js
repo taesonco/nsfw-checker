@@ -7,7 +7,7 @@ export default async ({ req, res, log, error }) => {
   const client = new Client()
     .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
     .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-    .setKey(req.headers['x-appwrite-key'] ?? '');
+    .setKey(req.headers['x-appwrite-key']);
   const storage = new Storage(client);
   const fileBuffer = await storage.getFileDownload(bucketId, fileId);
   const document = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -22,8 +22,8 @@ export default async ({ req, res, log, error }) => {
     // 4. Download the raw photo binary buffer from Storage
     const imageBuffer = await storage.getFileDownload(bucketId, fileId);
 
-    let res = await classifyImage(imageBuffer);
-    const topResult = res[0];
+    let result = await classifyImage(imageBuffer);
+    const topResult = result[0];
     if (topResult.className === 'Porn' || topResult.className === 'Hentai') {
       console.log("❌ Flagged: This image is NSFW.");
     } else {
